@@ -1,0 +1,57 @@
+import csv
+import os
+
+path = "S:\\IT-Ausbildung\\25FADP01\\_dateien\\internetvertraege.csv"
+vertraege = []
+zeitraum = 48
+
+with open(path, mode="r", encoding="utf-8") as csvfile:
+    reader = csv.DictReader(csvfile, delimiter=";")
+
+    for row in reader:
+        # Kündigungsfrist behandeln
+        kuendigungsfrist_str = row['KuendMonate'].strip()
+
+        if kuendigungsfrist_str == '-' or kuendigungsfrist_str == '':
+            kuendigungsfrist = 0
+        else:
+            kuendigungsfrist = int(kuendigungsfrist_str)
+
+        x = [
+            row['Anbieter'],
+            row['Vertragscode'],
+            float(row['Bereitstellung'].replace(',', '.')),  # x[2]
+            int(row['LaufzeitMonate']),  # x[3]
+            float(row['KostenMonat'].replace(',', '.')),  # x[4]
+            kuendigungsfrist,  # x[5]
+            0  # x[6]
+        ]
+
+        # Berechne Gesamtkosten
+        x[6] = x[2] + zeitraum * x[4]
+        if x[5] != 0 and x[3] != zeitraum:
+            x[6] += x[5] * x[4]
+
+        vertraege.append(x)
+
+# Sortieren nach Gesamtkosten
+vertraege_sortiert = sorted(vertraege, key=lambda x: x[6])
+
+# Alle Verträge ausgeben
+print("Alle Verträge sortiert nach Gesamtkosten über 48 Monate:")
+print("-" * 80)
+for x in vertraege_sortiert:
+    print(f"{x[0]:<15} {x[1]:<15} Gesamtkosten: {x[6]:>10.2f} €")
+
+# Günstigsten Vertrag ausgeben
+print("\n" + "=" * 80)
+guenstigster = vertraege_sortiert[0]
+print(f"GÜNSTIGSTER VERTRAG:")
+print(f"  Anbieter:        {guenstigster[0]}")
+print(f"  Vertragscode:    {guenstigster[1]}")
+print(f"  Bereitstellung:  {guenstigster[2]:.2f} €")
+print(f"  Laufzeit:        {guenstigster[3]} Monate")
+print(f"  Kosten/Monat:    {guenstigster[4]:.2f} €")
+print(f"  Kündigungsfrist: {guenstigster[5]} Monate")
+print(f"  GESAMTKOSTEN:    {guenstigster[6]:.2f} €")
+print("=" * 80)
